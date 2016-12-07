@@ -23,7 +23,7 @@ use account_provider::AccountProvider;
 use views::{BlockView, HeaderView};
 use header::Header;
 use state::{State, CleanupMode};
-use client::{MiningBlockChainClient, Executive, Executed, EnvInfo, TransactOptions, BlockID, CallAnalytics};
+use client::{MiningBlockChainClient, Executive, Executed, EnvInfo, TransactOptions, BlockID, CallAnalytics, TransactionID};
 use executive::contract_address;
 use block::{ClosedBlock, SealedBlock, IsBlock, Block};
 use error::*;
@@ -348,6 +348,8 @@ impl Miner {
 		let block_number = open_block.block().fields().header.number();
 
 		// TODO Push new uncles too.
+		let mut tx_count:usize = 0;
+		let tx_total = transactions.len();
 		for tx in transactions {
 			let hash = tx.hash();
 			let start = Instant::now();
@@ -369,7 +371,7 @@ impl Miner {
 				},
 				_ => {},
 			}
-
+			trace!(target: "miner", "Adding tx {:?} took {:?}", hash, took);
 			match result {
 				Err(Error::Execution(ExecutionError::BlockGasLimitReached { gas_limit, gas_used, gas })) => {
 					debug!(target: "miner", "Skipping adding transaction to block because of gas limit: {:?} (limit: {:?}, used: {:?}, gas: {:?})", hash, gas_limit, gas_used, gas);
@@ -398,9 +400,12 @@ impl Miner {
 						   "Error adding transaction to block: number={}. transaction_hash={:?}, Error: {:?}",
 						   block_number, hash, e);
 				},
-				_ => {}	// imported ok
+				_ => {
+					tx_count += 1;
+				}	// imported ok
 			}
 		}
+		trace!(target: "miner", "Pushed {}/{} transactions", tx_count, tx_total);
 
 		let block = open_block.close();
 
@@ -577,6 +582,10 @@ impl Miner {
 						match origin {
 							TransactionOrigin::Local | TransactionOrigin::RetractedBlock => {
 								transaction_queue.add(tx, origin, &fetch_account, &gas_required)
+							},
+							TransactionOrigin::External if chain.transaction_block(TransactionID::Hash(tx.hash())).is_some() => {
+								debug!(target: "miner", "Rejected tx {:?}: already in the blockchain", tx.hash());
+								Err(Error::Transaction(TransactionError::AlreadyImported))
 							},
 							TransactionOrigin::External => {
 								transaction_queue.add_with_banlist(tx, &fetch_account, &gas_required)
