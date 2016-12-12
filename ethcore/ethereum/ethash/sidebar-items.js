@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["is_new_best_block","Check if a new block should replace the best blockchain block."]],"struct":[["Ethash","Engine using Ethash proof-of-work consensus algorithm, suitable for Ethereum mainnet chains in the Olympic, Frontier and Homestead eras."],["EthashParams","Ethash params."]]});
