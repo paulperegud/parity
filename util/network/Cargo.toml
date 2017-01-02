@@ -6,6 +6,9 @@ name = "ethcore-network"
 version = "1.4.0"
 authors = ["Ethcore <admin@ethcore.io>"]
 
+[lib]
+crate-type = ["rlib", "dylib"]
+
 [dependencies]
 log = "0.3"
 mio = { git = "https://github.com/ethcore/mio" }
