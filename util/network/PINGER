@@ -1,0 +1,24 @@
+To test pinger and observe message loss.
+
+cd $ROOT/util/network
+cargo build --bin pinger
+
+In first terminal: ./target/debug/pinger -l
+In second terminal: ./target/debug/pinger -c
+
+Wait for ~10 seconds and see printed output.
+
+What is going on:
+
+This is a program that implements devp2p subprotocol with rudimentary functionality.
+On established connection both endpoints send 100 messages with packet_id=1
+to each other. When message with packet_id<6 is received, counter corresponding to
+this packet_id is increased and message with packet_id increased by one is sent back.
+If all messages are delivered (and pinger is written correctly) counters for all
+packet_id's in range 1..6 should be set to 100. Total of 1200 messages are being exchanged.
+
+Other notes:  
+1) Please note that in every 1..N chain of messages only last message, numbered N is sometimes lost.  
+2) If sleeps are inserted and amount messages per second is small, no messages are being lost.  
+3) This code has been tested on Linux and OSX. Problem does appear to be present only on Linux.  
+

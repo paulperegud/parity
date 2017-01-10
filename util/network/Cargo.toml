@@ -6,7 +6,12 @@ name = "ethcore-network"
 version = "1.4.0"
 authors = ["Ethcore <admin@ethcore.io>"]
 
+[lib]
+crate-type = ["rlib", "dylib"]
+
 [dependencies]
+env_logger = "0.3.5"
+docopt = "0.7"
 log = "0.3"
 mio = { git = "https://github.com/ethcore/mio" }
 bytes = "0.3.0"
@@ -27,6 +32,11 @@ ethcore-devtools = { path = "../../devtools" }
 ethkey = { path = "../../ethkey" }
 ethcrypto = { path = "../../ethcrypto" }
 rlp = { path = "../rlp" }
+
+[[bin]]
+path = "src/main.rs"
+name = "pinger"
+
 
 [features]
 default = []
